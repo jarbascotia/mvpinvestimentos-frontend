@@ -1,38 +1,202 @@
-.App {
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f0f5f5;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+h1, h2 {
+  color: #333;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Tabela */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+th {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  background-color: #007bff;
+  color: white;
+  white-space: normal; /* Permite quebra de linha nos cabeçalhos */
+}
+
+td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  white-space: nowrap; /* Impede a quebra de linha nos dados */
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #ddd;
+}
+
+/* Filtros */
+.filtro-container {
+  margin: 20px 0;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.filtro-botao {
+  margin: 5px 0; /* Ajuste a margem para espaçamento vertical */
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  width: 100%; /* Faz com que todos os botões tenham a mesma largura */
+  box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.filtro-botao.ativo {
+  background-color: #0056b3; /* Cor diferente para o botão ativo */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.filtro-botao:hover {
+  background-color: #0056b3;
+}
+
+/* Formulários */
+.form-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form-container div {
+  flex: 1 1 100px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+}
+
+.input-field {
+  width: 90%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+.botao {
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
   color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
 }
 
-.App-link {
-  color: #61dafb;
+.botao:hover {
+  background-color: #0056b3;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Botões de Ícone */
+.icon-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 24px;
+  margin: 0 5px;
+  transition: color 0.3s ease;
+}
+
+.icon-button:hover {
+  color: #0056b3;
+}
+
+/* Totais e Gráfico */
+.totais-e-grafico {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Garante que as divs tenham a mesma altura */
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .totais-e-grafico {
+    flex-direction: row;
+    justify-content: space-between;
   }
-  to {
-    transform: rotate(360deg);
+}
+
+.filtros-e-grafico {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.filtros-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0 20px;
+}
+
+.grafico {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .totais-e-grafico {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .filtros-e-grafico {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .filtros-vertical {
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  .grafico {
+    width: 100%;
+    margin: 20px 0;
+  }
+
+  .form-container div {
+    width: 100%;
+  }
+
+  .input-field {
+    width: 100%;
   }
 }
