@@ -1,20 +1,23 @@
-# Use a imagem base do Node.js
-FROM node:22.11.0
+# Usar uma imagem base do Node.js
+FROM node:16
 
-# Defina o diretório de trabalho
-WORKDIR /usr/src/app
+# Definir o diretório de trabalho
+WORKDIR /app
 
-# Copie os arquivos package.json e package-lock.json
+# Copiar o package.json e package-lock.json
 COPY package*.json ./
 
-# Instale as dependências
+# Instalar as dependências
 RUN npm install
 
-# Copie o restante dos arquivos da aplicação
+# Copiar o restante do código
 COPY . .
 
-# Exponha a porta que a aplicação irá rodar
+# Buildar a aplicação React
+RUN npm run build
+
+# Expor a porta que o React usa
 EXPOSE 3000
 
-# Comando para iniciar a aplicação
+# Comando para rodar a aplicação
 CMD ["npm", "start"]
