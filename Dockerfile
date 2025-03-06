@@ -22,8 +22,11 @@ FROM nginx:alpine
 # Copiar os arquivos buildados para o servidor Nginx
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Expor a porta 80
-EXPOSE 80
+# Copiar o arquivo de configuração do Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expor a porta dinâmica
+EXPOSE $PORT
 
 # Comando para rodar o servidor Nginx
 CMD ["nginx", "-g", "daemon off;"]
