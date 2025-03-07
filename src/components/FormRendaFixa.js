@@ -1,66 +1,34 @@
 import React, { useState } from 'react';
 
-const FormRendaFixa = ({ handleSubmit, editIdRendaFixa }) => {
-  // Estado para armazenar os valores do formulário
-  const [form, setForm] = useState({
-    tipo: '',
-    data_aquisicao: '',
-    percentual_cdi: '',
-    instituicao: '',
-    valor: '',
-    data_vencimento: '',
-  });
-
-  // Função para atualizar o estado do formulário
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prevForm) => ({
-      ...prevForm,
-      [name]: value,
-    }));
-  };
-
-  // Função para formatar o campo "valor" como moeda
-  const handleBlur = (e) => {
-    const { name, value } = e.target;
-
-    if (name === 'valor') {
-      // Remove caracteres não numéricos e substitui vírgula por ponto
-      const cleanedValue = value.replace(/[^0-9,]/g, '').replace(',', '.');
-      const numericValue = parseFloat(cleanedValue);
-
-      // Verifica se o valor é um número válido
-      if (!isNaN(numericValue)) {
-        // Formata o valor como moeda (R$)
-        const formattedValue = numericValue.toLocaleString('pt-BR', {
-          style: 'currency',
-          currency: 'BRL',
-        });
-
-        // Atualiza o estado com o valor formatado
-        setForm((prevForm) => ({
-          ...prevForm,
-          [name]: formattedValue,
-        }));
-      } else {
-        // Se não for um número válido, define o valor como vazio
-        setForm((prevForm) => ({
-          ...prevForm,
-          [name]: '',
-        }));
-      }
-    }
+const FormRendaFixa = ({
+  form,
+  handleChange,
+  handleBlur,
+  handleSubmit,
+  editIdRendaFixa,
+  setForm,
+  setEditIdRendaFixa,
+  fetchRendaFixa,
+  setRendaFixa,
+  setShowFormRendaFixa,
+}) => {
+  // Função para enviar o formulário
+  const onSubmit = (e) => {
+    e.preventDefault(); // Previne o comportamento padrão do formulário
+    handleSubmit(
+      e, // Passa o evento
+      form, // Passa os dados do formulário
+      setForm, // Passa a função para atualizar o estado do formulário
+      editIdRendaFixa, // Passa o ID de edição
+      setEditIdRendaFixa, // Passa a função para atualizar o ID de edição
+      fetchRendaFixa, // Passa a função para buscar os dados da renda fixa
+      setRendaFixa, // Passa a função para atualizar o estado da renda fixa
+      setShowFormRendaFixa // Passa a função para esconder o formulário
+    );
   };
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        console.log('Form data:', form);
-        handleSubmit(form); // Passa os dados do formulário para a função handleSubmit
-      }}
-      className="form-container"
-    >
+    <form onSubmit={onSubmit} className="form-container">
       <div>
         <label htmlFor="tipo">Tipo:</label>
         <select
