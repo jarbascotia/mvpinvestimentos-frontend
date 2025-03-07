@@ -7,11 +7,11 @@ const COLORS = [
   '#FF69B4', '#CD5C5C', '#4B0082', '#ADFF2F'
 ];
 
-const renderCustomizedLabel = ({ name, percent }) => `${name}: ${(percent * 100).toFixed(2)}%`;
+const renderCustomizedLabel = ({ percent }) => `${(percent * 100).toFixed(2)}%`;
 
 const Chart = ({ dataBarChart }) => (
   <div className="chart-container">
-    <PieChart width={600} height={400}>
+    <PieChart width={400} height={400}> {/* Reduz o tamanho do gráfico */}
       <Legend layout="horizontal" verticalAlign="top" align="center" />
       <Pie
         data={dataBarChart}
@@ -19,7 +19,7 @@ const Chart = ({ dataBarChart }) => (
         nameKey="name"
         cx="50%"
         cy="50%"
-        outerRadius={150}
+        outerRadius={120} /* Reduz o raio do gráfico */
         fill="#8884d8"
         label={renderCustomizedLabel}
       >

@@ -1,13 +1,30 @@
 import React from 'react';
 
-const FilterButtons = ({ filtro, setFiltro }) => (
-  <div className="filtro-container">
-    <button className={`filtro-botao ${filtro === 'Todos' ? 'ativo' : ''}`} onClick={() => setFiltro('Todos')}>Todos</button>
-    <button className={`filtro-botao ${filtro === 'Ações' ? 'ativo' : ''}`} onClick={() => setFiltro('Ações')}>Ações</button>
-    <button className={`filtro-botao ${filtro === 'Fundos Imobiliários' ? 'ativo' : ''}`} onClick={() => setFiltro('Fundos Imobiliários')}>FIIs</button>
-    <button className={`filtro-botao ${filtro === 'Exterior' ? 'ativo' : ''}`} onClick={() => setFiltro('Nenhum')}>Exterior</button>
-    <button className={`filtro-botao ${filtro === 'Nenhum' ? 'ativo' : ''}`} onClick={() => setFiltro('Nenhum')}>Nenhum</button>
-  </div>
-);
+const FilterButtons = ({ filtro, setFiltro }) => {
+  // Classes de ativos disponíveis para filtro
+  const classesAtivos = ['Ações', 'FIIs', 'LCI', 'LCA', 'CDB'];
+
+  // Função para alternar o estado de uma classe de ativo
+  const toggleFiltro = (classe) => {
+    setFiltro((prevFiltro) => ({
+      ...prevFiltro,
+      [classe]: !prevFiltro[classe], // Inverte o estado atual (true/false)
+    }));
+  };
+
+  return (
+    <div className="filtro-container">
+      {classesAtivos.map((classe) => (
+        <button
+          key={classe}
+          className={`filtro-botao ${filtro[classe] ? 'ativo' : ''}`} // Adiciona classe 'ativo' se o filtro estiver habilitado
+          onClick={() => toggleFiltro(classe)} // Alterna o estado do filtro
+        >
+          {classe}
+        </button>
+      ))}
+    </div>
+  );
+};
 
 export default FilterButtons;
