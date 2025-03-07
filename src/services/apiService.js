@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // URLs das APIs
 const API_URLS = {
-  carteira: 'http://localhost:3001/api', // URL base para a API de carteira
-  rendaFixa: 'http://localhost:3002/api', // URL base para a API de renda fixa
+  carteira: 'https://mvpinvestimentos-acoes.onrender.com/api', // URL base para a API de carteira
+  rendaFixa: 'https://mvpinvestimentos-renda-fixa.onrender.com/api', // URL base para a API de renda fixa
 };
 
 // Função para buscar a carteira
