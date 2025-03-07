@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import './App.css';
 import Form from './components/Form';
 import Table from './components/Table';
@@ -8,7 +7,14 @@ import FilterButtons from './components/FilterButtons';
 import FormRendaFixa from './components/FormRendaFixa';
 import TableRendaFixa from './components/TableRendaFixa';
 import TotaisCards from './components/TotaisCards';
-import { fetchCarteira, fetchRendaFixa } from './services/apiService';
+import {
+  fetchCarteira,
+  fetchRendaFixa,
+  saveCarteiraItem,
+  saveRendaFixaItem,
+  deleteCarteiraItem,
+  deleteRendaFixaItem,
+} from './services/apiService'; // Importe as funções do apiService
 import { formatCurrency, formatDate } from './utils/utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -33,69 +39,92 @@ function App() {
     CDB: true,
   });
 
+  // Carrega os dados da carteira e da renda fixa ao iniciar
   useEffect(() => {
     fetchCarteira().then(setCarteira);
     fetchRendaFixa().then(setRendaFixa);
   }, []);
 
+  // Função para atualizar o estado do formulário
   const handleChange = (e, setFormFunction) => {
     const { name, value } = e.target;
     setFormFunction(prevForm => ({
       ...prevForm,
-      [name]: name === 'ticker' ? value.toUpperCase() : value
+      [name]: name === 'ticker' ? value.toUpperCase() : value,
     }));
   };
 
+  // Função para formatar o campo "valor_compra" como moeda
   const handleBlur = (e) => {
     const { name, value } = e.target;
+
     if (name === 'valor_compra') {
-      const formattedValue = parseFloat(value.replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      setForm(prevForm => ({ ...prevForm, [name]: formattedValue }));
+      // Remove caracteres não numéricos e substitui vírgula por ponto
+      const cleanedValue = value.replace(/[^0-9,.]/g, '').replace(',', '.');
+      const numericValue = parseFloat(cleanedValue);
+
+      // Verifica se o valor é um número válido
+      if (!isNaN(numericValue)) {
+        // Formata o valor como moeda (R$)
+        const formattedValue = numericValue.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        });
+
+        // Atualiza o estado com o valor formatado
+        setForm((prevForm) => ({
+          ...prevForm,
+          [name]: formattedValue,
+        }));
+      } else {
+        // Se não for um número válido, define o valor como vazio
+        setForm((prevForm) => ({
+          ...prevForm,
+          [name]: '',
+        }));
+      }
     }
   };
 
-  const handleSubmit = async (e, form, setFormFunction, editId, setEditIdFunction, fetchFunction, apiEndpoint, setShowFormFunction) => {
+  // Função para enviar o formulário (carteira ou renda fixa)
+  const handleSubmit = async (e, form, setFormFunction, editId, setEditIdFunction, fetchFunction, setFunction, setShowFormFunction) => {
     e.preventDefault();
-    
+
     let formattedForm = { ...form };
-  
-    if (apiEndpoint === 'carteira') {
+
+    if (fetchFunction === fetchCarteira) {
       formattedForm = {
         ...form,
-        valor_compra: parseFloat(form.valor_compra.replace(/[^\d,]/g, '').replace(',', '.'))
+        valor_compra: parseFloat(form.valor_compra.replace(/[^\d,]/g, '').replace(',', '.')),
       };
-    } else if (apiEndpoint === 'renda-fixa') {
+      await saveCarteiraItem(formattedForm, editId);
+    } else if (fetchFunction === fetchRendaFixa) {
       formattedForm = {
         ...form,
-        valor: parseFloat(form.valor.replace(/[^\d,]/g, '').replace(',', '.'))
+        valor: parseFloat(form.valor.replace(/[^\d,]/g, '').replace(',', '.')),
       };
+      await saveRendaFixaItem(formattedForm, editId);
     }
-  
-    const apiUrl = apiEndpoint === 'carteira' ? 'https://mvpinvestimentos-acoes.onrender.com/api' : 'https://mvpinvestimentos-renda-fixa.onrender.com/api';
-    
-    if (editId) {
-      await axios.put(`${apiUrl}/${apiEndpoint}/${editId}`, formattedForm);
-      setEditIdFunction(null);
-    } else {
-      await axios.post(`${apiUrl}/${apiEndpoint}`, formattedForm);
-    }
-  
-    setFormFunction(apiEndpoint === 'carteira' 
-      ? { ticker: '', data_compra: '', valor_compra: '', quantidade: '' } 
+
+    // Reseta o formulário após o envio
+    setFormFunction(fetchFunction === fetchCarteira
+      ? { ticker: '', data_compra: '', valor_compra: '', quantidade: '' }
       : { tipo: '', data_aquisicao: '', percentual_cdi: '', instituicao: '', valor: '', data_vencimento: '' }
     );
-  
-    fetchFunction().then(apiEndpoint === 'carteira' ? setCarteira : setRendaFixa);
+
+    // Atualiza a lista de dados
+    fetchFunction().then(setFunction);
     setShowFormFunction(false);
   };
 
+  // Função para editar um item
   const handleEdit = (item, setFormFunction, setEditIdFunction, setShowFormFunction) => {
     if (item.ticker) {
       setFormFunction({
         ticker: item.ticker,
         data_compra: item.data_compra,
         valor_compra: item.valor_compra ? item.valor_compra.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
-        quantidade: item.quantidade
+        quantidade: item.quantidade,
       });
     } else {
       setFormFunction({
@@ -104,16 +133,20 @@ function App() {
         percentual_cdi: item.percentual_cdi,
         instituicao: item.instituicao,
         valor: item.valor ? item.valor.toString() : '',
-        data_vencimento: item.data_vencimento
+        data_vencimento: item.data_vencimento,
       });
     }
     setEditIdFunction(item.id);
     setShowFormFunction(true);
   };
 
-  const handleDelete = async (id, apiEndpoint, fetchFunction, setFunction) => {
-    const apiUrl = apiEndpoint === 'carteira' ? 'https://mvpinvestimentos-acoes.onrender.com/api' : 'https://mvpinvestimentos-renda-fixa.onrender.com/api';
-    await axios.delete(`${apiUrl}/${apiEndpoint}/${id}`);
+  // Função para deletar um item
+  const handleDelete = async (id, fetchFunction, setFunction) => {
+    if (fetchFunction === fetchCarteira) {
+      await deleteCarteiraItem(id);
+    } else if (fetchFunction === fetchRendaFixa) {
+      await deleteRendaFixaItem(id);
+    }
     fetchFunction().then(setFunction);
   };
 
@@ -212,11 +245,11 @@ function App() {
       <div className="desktop-layout">
         <div className="cards-column">
           {/* Coluna 1: Ações, FIIs, CDB */}
-          <TotaisCards 
-            totaisPorCategoria={totaisPorCategoria} 
-            formatCurrency={formatCurrency} 
-            categorias={['Ações', 'FIIs', 'CDB']} 
-            className="superior-cards" // Adicione esta classe
+          <TotaisCards
+            totaisPorCategoria={totaisPorCategoria}
+            formatCurrency={formatCurrency}
+            categorias={['Ações', 'FIIs', 'CDB']}
+            className="superior-cards"
           />
         </div>
         <div className="grafico-container">
@@ -225,11 +258,11 @@ function App() {
         </div>
         <div className="cards-column">
           {/* Coluna 3: LCA, LCI, Totais Gerais */}
-          <TotaisCards 
-            totaisPorCategoria={totaisPorCategoria} 
-            formatCurrency={formatCurrency} 
-            categorias={['LCI', 'LCA', 'Totais Gerais']} 
-            className="superior-cards" // Adicione esta classe
+          <TotaisCards
+            totaisPorCategoria={totaisPorCategoria}
+            formatCurrency={formatCurrency}
+            categorias={['LCI', 'LCA', 'Totais Gerais']}
+            className="superior-cards"
           />
         </div>
       </div>
@@ -241,16 +274,17 @@ function App() {
         </div>
         <div className="totais-container">
           <h2>Totais Gerais por Categoria</h2>
-          <TotaisCards 
-            totaisPorCategoria={totaisPorCategoria} 
-            formatCurrency={formatCurrency} 
-            categorias={['Ações', 'FIIs', 'CDB', 'LCI', 'LCA', 'Totais Gerais']} 
+          <TotaisCards
+            totaisPorCategoria={totaisPorCategoria}
+            formatCurrency={formatCurrency}
+            categorias={['Ações', 'FIIs', 'CDB', 'LCI', 'LCA', 'Totais Gerais']}
           />
         </div>
       </div>
 
       {/* Renda Variável */}
-      <h2>Renda Variável
+      <h2>
+        Renda Variável
         <button className="icon-button" onClick={() => setShowFormAcoes(!showFormAcoes)}>
           <FontAwesomeIcon icon={faPlus} />
         </button>
@@ -260,7 +294,7 @@ function App() {
           form={form}
           handleChange={(e) => handleChange(e, setForm)}
           handleBlur={handleBlur}
-          handleSubmit={(e) => handleSubmit(e, form, setForm, editId, setEditId, fetchCarteira, 'carteira', setShowFormAcoes)}
+          handleSubmit={(e) => handleSubmit(e, form, setForm, editId, setEditId, fetchCarteira, setCarteira, setShowFormAcoes)}
           editId={editId}
         />
       )}
@@ -270,11 +304,12 @@ function App() {
         formatDate={formatDate}
         formatCurrency={formatCurrency}
         handleEdit={(acao) => handleEdit(acao, setForm, setEditId, setShowFormAcoes)}
-        handleDelete={(id) => handleDelete(id, 'carteira', fetchCarteira, setCarteira)}
+        handleDelete={(id) => handleDelete(id, fetchCarteira, setCarteira)}
       />
 
       {/* Renda Fixa */}
-      <h2>Renda Fixa
+      <h2>
+        Renda Fixa
         <button className="icon-button" onClick={() => setShowFormRendaFixa(!showFormRendaFixa)}>
           <FontAwesomeIcon icon={faPlus} />
         </button>
@@ -283,7 +318,7 @@ function App() {
         <FormRendaFixa
           form={formRendaFixa}
           handleChange={(e) => handleChange(e, setFormRendaFixa)}
-          handleSubmit={(e) => handleSubmit(e, formRendaFixa, setFormRendaFixa, editIdRendaFixa, setEditIdRendaFixa, fetchRendaFixa, 'renda-fixa', setShowFormRendaFixa)}
+          handleSubmit={(e) => handleSubmit(e, formRendaFixa, setFormRendaFixa, editIdRendaFixa, setEditIdRendaFixa, fetchRendaFixa, setRendaFixa, setShowFormRendaFixa)}
           editIdRendaFixa={editIdRendaFixa}
         />
       )}
@@ -292,7 +327,7 @@ function App() {
         formatDate={formatDate}
         formatCurrency={formatCurrency}
         handleEdit={(aplicacao) => handleEdit(aplicacao, setFormRendaFixa, setEditIdRendaFixa, setShowFormRendaFixa)}
-        handleDelete={(id) => handleDelete(id, 'renda-fixa', fetchRendaFixa, setRendaFixa)}
+        handleDelete={(id) => handleDelete(id, fetchRendaFixa, setRendaFixa)}
         filtro={filtro}
       />
     </div>

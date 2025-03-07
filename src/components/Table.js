@@ -39,7 +39,7 @@ const Table = ({ carteira, filtrarCarteira, formatDate, formatCurrency, handleEd
             </div>
             <div className="card-header-col2">
               <p>Cotação: {formatCurrency(acao.cotacao_atual)}</p>
-              <p>Saldo: {formatCurrency(acao.valor_atualizado)}</p>
+              <p><strong>Saldo: </strong>{formatCurrency(acao.valor_atualizado)}</p>
             </div>
             <div className="card-header-actions">
               <button className="icon-button" onClick={(e) => { e.stopPropagation(); handleEdit(acao); }}>
