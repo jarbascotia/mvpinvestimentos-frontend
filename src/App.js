@@ -7,6 +7,7 @@ import Chart from './components/Chart';
 import FilterButtons from './components/FilterButtons';
 import FormRendaFixa from './components/FormRendaFixa';
 import TableRendaFixa from './components/TableRendaFixa';
+import TotaisCards from './components/TotaisCards';
 import { fetchCarteira, fetchRendaFixa } from './services/apiService';
 import { formatCurrency, formatDate } from './utils/utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -157,11 +158,17 @@ function App() {
     const totaisRendaVariavel = filtrarCarteira().reduce((acc, acao) => {
       const tipo = acao.ticker.endsWith('11') ? 'FIIs' : 'Ações'; // Exemplo básico, ajuste conforme necessário
       if (!acc[tipo]) {
-        acc[tipo] = { valorInvestido: 0, valorAtualizado: 0, lucro: 0 };
+        acc[tipo] = {
+          valorInvestido: 0,
+          valorAtualizado: 0,
+          lucro: 0,
+          ativos: [], // Lista de ativos que compõem a categoria
+        };
       }
       acc[tipo].valorInvestido += acao.valor_investido || 0;
       acc[tipo].valorAtualizado += acao.valor_atualizado || 0;
       acc[tipo].lucro += acao.lucro || 0;
+      acc[tipo].ativos.push(acao); // Adiciona o ativo à lista
       return acc;
     }, {});
 
@@ -169,11 +176,17 @@ function App() {
     const totaisRendaFixa = filtrarRendaFixa().reduce((acc, aplicacao) => {
       if (['LCI', 'LCA', 'CDB'].includes(aplicacao.tipo)) {
         if (!acc[aplicacao.tipo]) {
-          acc[aplicacao.tipo] = { valorInvestido: 0, valorAtualizado: 0, lucro: 0 };
+          acc[aplicacao.tipo] = {
+            valorInvestido: 0,
+            valorAtualizado: 0,
+            lucro: 0,
+            ativos: [], // Lista de ativos que compõem a categoria
+          };
         }
         acc[aplicacao.tipo].valorInvestido += aplicacao.valor || 0;
         acc[aplicacao.tipo].valorAtualizado += aplicacao.valor_atualizado || 0;
         acc[aplicacao.tipo].lucro += aplicacao.lucro || 0;
+        acc[aplicacao.tipo].ativos.push(aplicacao); // Adiciona o ativo à lista
       }
       return acc;
     }, {});
@@ -184,11 +197,6 @@ function App() {
 
   // Exemplo de uso:
   const totaisPorCategoria = calcularTotaisPorCategoria();
-
-  // Calcula os totais gerais
-  const totalInvestidoFiltrado = Object.values(totaisPorCategoria).reduce((total, categoria) => total + categoria.valorInvestido, 0);
-  const totalAtualizadoFiltrado = Object.values(totaisPorCategoria).reduce((total, categoria) => total + categoria.valorAtualizado, 0);
-  const lucroTotalFiltrado = Object.values(totaisPorCategoria).reduce((total, categoria) => total + categoria.lucro, 0);
 
   return (
     <div className="app-container">
@@ -202,39 +210,27 @@ function App() {
 
       {/* Layout Desktop */}
       <div className="desktop-layout">
-        <div className="totais-grafico-container">
-          <div className="totais-container">
-            <h2>Totais Gerais por Categoria</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Categoria</th>
-                  <th>Valor Investido</th>
-                  <th>Valor Atualizado</th>
-                  <th>Lucro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(totaisPorCategoria).map(([categoria, totais]) => (
-                  <tr key={categoria}>
-                    <td data-label="Categoria">{categoria}</td>
-                    <td data-label="Valor Investido">{formatCurrency(totais.valorInvestido)}</td>
-                    <td data-label="Valor Atualizado">{formatCurrency(totais.valorAtualizado)}</td>
-                    <td data-label="Lucro">{formatCurrency(totais.lucro)}</td>
-                  </tr>
-                ))}
-                <tr>
-                  <td><strong>Total Geral</strong></td>
-                  <td data-label="Total Investido">{formatCurrency(totalInvestidoFiltrado)}</td>
-                  <td data-label="Total Atualizado">{formatCurrency(totalAtualizadoFiltrado)}</td>
-                  <td data-label="Lucro Total">{formatCurrency(lucroTotalFiltrado)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="grafico-container">
-            <Chart dataBarChart={combinarDadosGrafico()} />
-          </div>
+        <div className="cards-column">
+          {/* Coluna 1: Ações, FIIs, CDB */}
+          <TotaisCards 
+            totaisPorCategoria={totaisPorCategoria} 
+            formatCurrency={formatCurrency} 
+            categorias={['Ações', 'FIIs', 'CDB']} 
+            className="superior-cards" // Adicione esta classe
+          />
+        </div>
+        <div className="grafico-container">
+          {/* Coluna 2: Gráfico */}
+          <Chart dataBarChart={combinarDadosGrafico()} />
+        </div>
+        <div className="cards-column">
+          {/* Coluna 3: LCA, LCI, Totais Gerais */}
+          <TotaisCards 
+            totaisPorCategoria={totaisPorCategoria} 
+            formatCurrency={formatCurrency} 
+            categorias={['LCI', 'LCA', 'Totais Gerais']} 
+            className="superior-cards" // Adicione esta classe
+          />
         </div>
       </div>
 
@@ -245,36 +241,15 @@ function App() {
         </div>
         <div className="totais-container">
           <h2>Totais Gerais por Categoria</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Categoria</th>
-                <th>Valor Investido</th>
-                <th>Valor Atualizado</th>
-                <th>Lucro</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(totaisPorCategoria).map(([categoria, totais]) => (
-                <tr key={categoria}>
-                  <td data-label="Categoria">{categoria}</td>
-                  <td data-label="Valor Investido">{formatCurrency(totais.valorInvestido)}</td>
-                  <td data-label="Valor Atualizado">{formatCurrency(totais.valorAtualizado)}</td>
-                  <td data-label="Lucro">{formatCurrency(totais.lucro)}</td>
-                </tr>
-              ))}
-              <tr>
-                <td><strong>Total Geral</strong></td>
-                <td data-label="Total Investido">{formatCurrency(totalInvestidoFiltrado)}</td>
-                <td data-label="Total Atualizado">{formatCurrency(totalAtualizadoFiltrado)}</td>
-                <td data-label="Lucro Total">{formatCurrency(lucroTotalFiltrado)}</td>
-              </tr>
-            </tbody>
-          </table>
+          <TotaisCards 
+            totaisPorCategoria={totaisPorCategoria} 
+            formatCurrency={formatCurrency} 
+            categorias={['Ações', 'FIIs', 'CDB', 'LCI', 'LCA', 'Totais Gerais']} 
+          />
         </div>
       </div>
 
-      {/* Renda Variável e Renda Fixa */}
+      {/* Renda Variável */}
       <h2>Renda Variável
         <button className="icon-button" onClick={() => setShowFormAcoes(!showFormAcoes)}>
           <FontAwesomeIcon icon={faPlus} />
@@ -296,11 +271,9 @@ function App() {
         formatCurrency={formatCurrency}
         handleEdit={(acao) => handleEdit(acao, setForm, setEditId, setShowFormAcoes)}
         handleDelete={(id) => handleDelete(id, 'carteira', fetchCarteira, setCarteira)}
-        totalInvestido={totalInvestidoFiltrado}
-        totalAtualizado={totalAtualizadoFiltrado}
-        lucroTotal={lucroTotalFiltrado}
       />
 
+      {/* Renda Fixa */}
       <h2>Renda Fixa
         <button className="icon-button" onClick={() => setShowFormRendaFixa(!showFormRendaFixa)}>
           <FontAwesomeIcon icon={faPlus} />

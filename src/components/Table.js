@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 
 const Table = ({ carteira, filtrarCarteira, formatDate, formatCurrency, handleEdit, handleDelete }) => {
   const [totaisFiltrados, setTotaisFiltrados] = useState({
@@ -8,6 +8,8 @@ const Table = ({ carteira, filtrarCarteira, formatDate, formatCurrency, handleEd
     totalAtualizado: 0,
     lucroTotal: 0,
   });
+
+  const [expandedCardId, setExpandedCardId] = useState(null); // Controla qual card está expandido
 
   useEffect(() => {
     const totais = filtrarCarteira().reduce(
@@ -22,58 +24,52 @@ const Table = ({ carteira, filtrarCarteira, formatDate, formatCurrency, handleEd
     setTotaisFiltrados(totais);
   }, [carteira, filtrarCarteira]);
 
+  const toggleExpand = (id) => {
+    setExpandedCardId(expandedCardId === id ? null : id); // Expande/recolhe o card
+  };
+
   return (
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>Ticker</th>
-            <th>Nome</th>
-            <th>Data de Compra</th>
-            <th>Valor de Compra</th>
-            <th>Quantidade</th>
-            <th>Cotação Atual</th>
-            <th>Valor Investido</th>
-            <th>Valor Atualizado</th>
-            <th>Lucro</th>
-            <th>% da Carteira</th>
-            <th>Tipo</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtrarCarteira().map((acao) => (
-            <tr key={acao.id}>
-              <td>{acao.ticker.toUpperCase()}</td>
-              <td>{acao.nome}</td>
-              <td>{formatDate(acao.data_compra)}</td>
-              <td>{formatCurrency(acao.valor_compra)}</td>
-              <td>{acao.quantidade}</td>
-              <td>{formatCurrency(acao.cotacao_atual)}</td>
-              <td>{formatCurrency(acao.valor_investido)}</td>
-              <td>{formatCurrency(acao.valor_atualizado)}</td>
-              <td>{formatCurrency(acao.lucro)}</td>
-              <td>{((acao.valor_atualizado / totaisFiltrados.totalAtualizado) * 100).toFixed(2)}%</td>
-              <td>{acao.ticker.endsWith('11') ? 'FII' : 'Ação'}</td>
-              <td>
-                <button className="icon-button" onClick={() => handleEdit(acao)}>
-                  <FontAwesomeIcon icon={faEdit} />
-                </button>
-                <button className="icon-button" onClick={() => handleDelete(acao.id)}>
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
-              </td>
-            </tr>
-          ))}
-          <tr>
-            <td colSpan="6">Totais</td>
-            <td>{formatCurrency(totaisFiltrados.totalInvestido)}</td>
-            <td>{formatCurrency(totaisFiltrados.totalAtualizado)}</td>
-            <td>{formatCurrency(totaisFiltrados.lucroTotal)}</td>
-            <td colSpan="3"></td>
-          </tr>
-        </tbody>
-      </table>
+    <div className="cards-container">
+      {filtrarCarteira().map((acao) => (
+        <div key={acao.id} className="card">
+          <div className="card-header" onClick={() => toggleExpand(acao.id)}>
+            <div className="card-header-col1">
+              <h3>{acao.ticker.toUpperCase()}</h3>
+              <p>{acao.nome}</p>
+            </div>
+            <div className="card-header-col2">
+              <p>Cotação: {formatCurrency(acao.cotacao_atual)}</p>
+              <p>Saldo: {formatCurrency(acao.valor_atualizado)}</p>
+            </div>
+            <div className="card-header-actions">
+              <button className="icon-button" onClick={(e) => { e.stopPropagation(); handleEdit(acao); }}>
+                <FontAwesomeIcon icon={faEdit} />
+              </button>
+              <button className="icon-button" onClick={(e) => { e.stopPropagation(); handleDelete(acao.id); }}>
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
+              <FontAwesomeIcon icon={expandedCardId === acao.id ? faChevronUp : faChevronDown} />
+            </div>
+          </div>
+          {expandedCardId === acao.id && (
+            <div className="card-details">
+              <p><strong>Data de Compra:</strong> {formatDate(acao.data_compra)}</p>
+              <p><strong>Valor de Compra:</strong> {formatCurrency(acao.valor_compra)}</p>
+              <p><strong>Quantidade:</strong> {acao.quantidade}</p>
+              <p><strong>Valor Investido:</strong> {formatCurrency(acao.valor_investido)}</p>
+              <p><strong>Lucro:</strong> {formatCurrency(acao.lucro)}</p>
+              <p><strong>% da Carteira:</strong> {((acao.valor_atualizado / totaisFiltrados.totalAtualizado) * 100).toFixed(2)}%</p>
+              <p><strong>Tipo:</strong> {acao.ticker.endsWith('11') ? 'FII' : 'Ação'}</p>
+            </div>
+          )}
+        </div>
+      ))}
+      <div className="card-totais">
+        <h3>Totais</h3>
+        <p><strong>Total Investido:</strong> {formatCurrency(totaisFiltrados.totalInvestido)}</p>
+        <p><strong>Total Atualizado:</strong> {formatCurrency(totaisFiltrados.totalAtualizado)}</p>
+        <p><strong>Lucro Total:</strong> {formatCurrency(totaisFiltrados.lucroTotal)}</p>
+      </div>
     </div>
   );
 };
