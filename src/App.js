@@ -194,9 +194,56 @@ function App() {
     <div className="app-container">
       <h1 className="titulo-centralizado">MVP Investimentos</h1>
       <br></br>
-      
-      <div className="totais-e-grafico">
-        <div className="totais">
+
+      {/* Filtros */}
+      <div className="filtros-container">
+        <FilterButtons filtro={filtro} setFiltro={setFiltro} />
+      </div>
+
+      {/* Layout Desktop */}
+      <div className="desktop-layout">
+        <div className="totais-grafico-container">
+          <div className="totais-container">
+            <h2>Totais Gerais por Categoria</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Categoria</th>
+                  <th>Valor Investido</th>
+                  <th>Valor Atualizado</th>
+                  <th>Lucro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(totaisPorCategoria).map(([categoria, totais]) => (
+                  <tr key={categoria}>
+                    <td data-label="Categoria">{categoria}</td>
+                    <td data-label="Valor Investido">{formatCurrency(totais.valorInvestido)}</td>
+                    <td data-label="Valor Atualizado">{formatCurrency(totais.valorAtualizado)}</td>
+                    <td data-label="Lucro">{formatCurrency(totais.lucro)}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <td><strong>Total Geral</strong></td>
+                  <td data-label="Total Investido">{formatCurrency(totalInvestidoFiltrado)}</td>
+                  <td data-label="Total Atualizado">{formatCurrency(totalAtualizadoFiltrado)}</td>
+                  <td data-label="Lucro Total">{formatCurrency(lucroTotalFiltrado)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="grafico-container">
+            <Chart dataBarChart={combinarDadosGrafico()} />
+          </div>
+        </div>
+      </div>
+
+      {/* Layout Mobile */}
+      <div className="mobile-layout">
+        <div className="grafico-container">
+          <Chart dataBarChart={combinarDadosGrafico()} />
+        </div>
+        <div className="totais-container">
           <h2>Totais Gerais por Categoria</h2>
           <table>
             <thead>
@@ -225,17 +272,9 @@ function App() {
             </tbody>
           </table>
         </div>
-        <div className="filtros-e-grafico">
-          <div className="filtros-vertical">
-            <h3>Filtros</h3>
-            <FilterButtons filtro={filtro} setFiltro={setFiltro} />
-          </div>
-          <div className="grafico">
-            <Chart dataBarChart={combinarDadosGrafico()} />
-          </div>
-        </div>
       </div>
 
+      {/* Renda Variável e Renda Fixa */}
       <h2>Renda Variável
         <button className="icon-button" onClick={() => setShowFormAcoes(!showFormAcoes)}>
           <FontAwesomeIcon icon={faPlus} />
