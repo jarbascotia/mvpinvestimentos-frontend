@@ -14,7 +14,7 @@ import {
   saveRendaFixaItem,
   deleteCarteiraItem,
   deleteRendaFixaItem,
-} from './services/apiService'; // Importe as funções do apiService
+} from './services/apiService';
 import { formatCurrency, formatDate } from './utils/utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -88,7 +88,7 @@ function App() {
 
   // Função para enviar o formulário (carteira ou renda fixa)
   const handleSubmit = async (e, form, setFormFunction, editId, setEditIdFunction, fetchFunction, setFunction, setShowFormFunction) => {
-    e.preventDefault();
+    e.preventDefault(); // Garante que o evento seja cancelado
 
     let formattedForm = { ...form };
 
